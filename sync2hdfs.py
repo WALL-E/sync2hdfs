@@ -14,8 +14,8 @@ import requests
 #
 
 config = {
-    "total": 0,
-    "count": 0,
+    "uploaded": 0,
+    "processed": 0,
     "recursive_max": 5000
 }
 
@@ -79,7 +79,7 @@ def recursive(dir):
         # 忽略隐藏文件
         if f[0] == ".":
             continue
-        if config["count"] >= config["recursive_max"]:
+        if config["processed"] >= config["recursive_max"]:
             sys.exit(1)
         path = dir + os.sep + f
         if os.path.isdir(path):
@@ -87,17 +87,18 @@ def recursive(dir):
             hdfs_mkdirs(get_hdfs_path(path))
             recursive(path)
         elif os.path.isfile(path):
-            print "[f]", path
-            config["total"] = config["total"] + 1
             if is_hdfs_exist(get_hdfs_path(path)):
-                print "###", path
+                config["uploaded"] = config["uploaded"] + 1
+                print "[f][uploaded]", path
                 continue
+            else:
+                print "[f][uploading]", path
             hdfs_upload(path)
-            config["count"] = config["count"] + 1
+            config["processed"] = config["processed"] + 1
         else:
             print "[?]", path
             sys.exit(1)
-        print "max:[%s], index[%s]" % (config["recursive_max"], config["count"])
+        print "max:[%s], index[%s]" % (config["recursive_max"], config["processed"])
 
 
 def main():
