@@ -104,9 +104,9 @@ def recursive(root, dir):
             hdfs_upload(dir, path)
             stats["processed"] = stats["processed"] + 1
         else:
-            print "[?]", path
+            print "[?][unknow]", path
             sys.exit(1)
-        print "max_recursive_file:[%s], processed:[%s]" % (max_recursive_file, stats["processed"])
+        print "max_recursive_file:[%s]" % (max_recursive_file)
 
 
 def usage():
@@ -114,7 +114,7 @@ def usage():
     print "  %s directory-to-sync" % (sys.argv[0])
 
 
-def onsignal_term(signum, frame):    
+def onsignal_term(signum, frame):
     global is_exited
     print "Receive [%s] signal" % (signum)
     is_exited = True
