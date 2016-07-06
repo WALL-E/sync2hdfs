@@ -93,10 +93,10 @@ def recursive(dir):
                 print "###", path
                 continue
             hdfs_upload(path)
+            config["count"] = config["count"] + 1
         else:
             print "[?]", path
             sys.exit(1)
-        config["count"] = config["count"] + 1
         print "max:[%s], index[%s]" % (config["recursive_max"], config["count"])
 
 
