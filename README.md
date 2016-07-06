@@ -6,3 +6,8 @@
 
 ## Todo
 增加校验数据是否正确上传
+
+## Hadoop 
+### WebHDFS REST API
+The HTTP REST API supports the complete FileSystem/FileContext interface for HDFS， 详见
+[doc](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/WebHDFS.html)
