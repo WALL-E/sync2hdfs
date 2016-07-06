@@ -1,5 +1,5 @@
 # sync2hdfs
-使用Restful API, 同步文件夹到HDFS
+使用Restful API, 同步本地文件夹到HDFS
 
 ## 注意事项
 不对隐藏文件进行同步
