@@ -28,7 +28,7 @@ stats = {
 def is_hdfs_exist(path_and_filename):
     if path_and_filename[0] == "/":
         path_and_filename = path_and_filename[1:]
-    url = base_url + os.sep + path_and_filename + os.sep + "?op=GETFILESTATUS&" + auth_str
+    url = base_url + os.sep + path_and_filename + "?op=GETFILESTATUS&" + auth_str
     # print "is_hdfs_exist url:", url
     response = requests.get(url)
     if int(response.status_code) == 200:
