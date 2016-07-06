@@ -27,7 +27,7 @@ auth_str = "user.name=lijie"
 def is_hdfs_exist(path_and_filename):
     if path_and_filename[0] == "/":
         path_and_filename = path_and_filename[1:]
-    url = base_url + "/" + path_and_filename + "/" + "?op=GETFILESTATUS&" + auth_str
+    url = base_url + os.sep + path_and_filename + os.sep + "?op=GETFILESTATUS&" + auth_str
     # print "is_hdfs_exist url:", url
     response = requests.get(url)
     if int(response.status_code) == 200:
@@ -43,7 +43,7 @@ def get_hdfs_path(path_and_filename):
 def hdfs_mkdirs(dir):
     if dir[0] == "/":
         dir = dir[1:]
-    url = base_url + "/" + dir + "?op=MKDIRS&" + auth_str
+    url = base_url + os.sep + dir + "?op=MKDIRS&" + auth_str
     # print "mkdir url:", url
     response = requests.put(url)
     if int(response.status_code) == 200:
@@ -60,7 +60,7 @@ def hdfs_upload(path_and_filename):
     if is_hdfs_exist(path_and_filename):
         print "%s existed" % (path_and_filename)
         return False
-    url = base_url + "/" + path_and_filename + "?op=CREATE&" + auth_str + "&data=true"
+    url = base_url + os.sep + path_and_filename + "?op=CREATE&" + auth_str + "&data=true"
     headers = {"Content-Type": "application/octet-stream"}
     response = requests.put(url, files=files, headers=headers)
     # print "upload url:", url
