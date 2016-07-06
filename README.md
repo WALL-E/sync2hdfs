@@ -5,7 +5,7 @@
 不对隐藏文件进行同步
 
 ## Todo
-增加校验数据是否正确上传
+校验数据是否正确上传
 
 ## Hadoop 
 ### WebHDFS REST API
