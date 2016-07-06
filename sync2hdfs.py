@@ -19,7 +19,7 @@ config = {
     "recursive_max": 5000
 }
 
-root="/apps/logs/apps"
+root = "/apps/logs/apps"
 base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
 auth_str = "user.name=lijie"
 
@@ -37,7 +37,7 @@ def is_hdfs_exist(path_and_filename):
 
 
 def get_hdfs_path(path_and_filename):
-    return path_and_filename.replace(root, "") 
+    return path_and_filename.replace(root, "")
 
 
 def hdfs_mkdirs(dir):
@@ -71,11 +71,11 @@ def hdfs_upload(path_and_filename):
         print "%s upload failed" % (path_and_filename)
         return False
 
+
 def recursive(dir):
-    files = os.listdir(dir)  
+    files = os.listdir(dir)
     files.sort()
-    for f in files:  
-        status = False
+    for f in files:
         # 忽略隐藏文件
         if f[0] == ".":
             continue
@@ -84,7 +84,7 @@ def recursive(dir):
         path = dir + os.sep + f
         if os.path.isdir(path):
             print "[d]", path
-            ret = hdfs_mkdirs(get_hdfs_path(path))
+            hdfs_mkdirs(get_hdfs_path(path))
             recursive(path)
         elif os.path.isfile(path):
             print "[f]", path
@@ -92,12 +92,13 @@ def recursive(dir):
             if is_hdfs_exist(get_hdfs_path(path)):
                 print "###", path
                 continue
-            ret = hdfs_upload(path)
+            hdfs_upload(path)
         else:
-           print "[?]", path
-           sys.exit(1)
+            print "[?]", path
+            sys.exit(1)
         config["count"] = config["count"] + 1
         print "max:[%s], index[%s]" % (config["recursive_max"], config["count"])
+
 
 def main():
     recursive(root)
