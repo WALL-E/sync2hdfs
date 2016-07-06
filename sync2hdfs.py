@@ -13,10 +13,9 @@ import requests
 # curl -i --header "Content-Type:application/octet-stream"  -X PUT -T app_o2o_admin.2016-02-01.log "http://10.19.16.30:14000/webhdfs/v1/lijie/o2o_admin/app_o2o_admin.2016-02-01.log?op=CREATE&user.name=lijie&data=true"
 #
 
-root = "/apps/logs/apps"
 base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
 auth_str = "user.name=lijie"
-max_recursive_file = 5000
+max_recursive_file = 1000
 
 
 stats = {
@@ -37,7 +36,7 @@ def is_hdfs_exist(path_and_filename):
         return False
 
 
-def get_hdfs_path(path_and_filename):
+def get_hdfs_path(root, path_and_filename):
     return path_and_filename.replace(root, "")
 
 
@@ -53,9 +52,9 @@ def hdfs_mkdirs(dir):
         print "%s mkdir failed" % (dir)
 
 
-def hdfs_upload(path_and_filename):
+def hdfs_upload(root, path_and_filename):
     files = {'file': open(path_and_filename, 'rb')}
-    path_and_filename = get_hdfs_path(path_and_filename)
+    path_and_filename = get_hdfs_path(root, path_and_filename)
     if path_and_filename[0] == "/":
         path_and_filename = path_and_filename[1:]
     if is_hdfs_exist(path_and_filename):
@@ -73,7 +72,7 @@ def hdfs_upload(path_and_filename):
         return False
 
 
-def recursive(dir):
+def recursive(root, dir):
     try:
         files = os.listdir(dir)
     except OSError, msg:
@@ -89,16 +88,16 @@ def recursive(dir):
         path = dir + os.sep + f
         if os.path.isdir(path):
             print "[d]", path
-            hdfs_mkdirs(get_hdfs_path(path))
-            recursive(path)
+            hdfs_mkdirs(get_hdfs_path(root, path))
+            recursive(root, path)
         elif os.path.isfile(path):
-            if is_hdfs_exist(get_hdfs_path(path)):
+            if is_hdfs_exist(get_hdfs_path(root, path)):
                 stats["uploaded"] = stats["uploaded"] + 1
                 print "[f][uploaded]", path
                 continue
             else:
                 print "[f][uploading]", path
-            hdfs_upload(path)
+            hdfs_upload(dir, path)
             stats["processed"] = stats["processed"] + 1
         else:
             print "[?]", path
@@ -106,8 +105,17 @@ def recursive(dir):
         print "max_recursive_file:[%s], processed:[%s]" % (max_recursive_file, stats["processed"])
 
 
+def usage():
+    print "Usage:"
+    print "  %s directory-to-sync" % (sys.argv[0])
+
+
 def main():
-    recursive(root)
+    if len(sys.argv) < 2:
+        usage()
+        sys.exit(1)
+    src = sys.argv[1]
+    recursive(src, src)
     print stats
 
 if __name__ == '__main__':
