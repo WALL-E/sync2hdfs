@@ -3,6 +3,7 @@
 
 import os
 import sys
+import signal
 import requests
 
 #
@@ -22,6 +23,7 @@ stats = {
     "uploaded": 0,
     "processed": 0,
 }
+is_exited = False
 
 
 def is_hdfs_exist(path_and_filename):
@@ -80,6 +82,8 @@ def recursive(root, dir):
         sys.exit(1)
     files.sort()
     for f in files:
+        if is_exited:
+            return
         # 忽略隐藏文件
         if f[0] == ".":
             continue
@@ -110,7 +114,14 @@ def usage():
     print "  %s directory-to-sync" % (sys.argv[0])
 
 
+def onsignal_term(signum, frame):    
+    global is_exited
+    print "Receive [%s] signal" % (signum)
+    is_exited = True
+
+
 def main():
+    signal.signal(signal.SIGINT, onsignal_term)
     if len(sys.argv) < 2:
         usage()
         sys.exit(1)
