@@ -13,15 +13,16 @@ import requests
 # curl -i --header "Content-Type:application/octet-stream"  -X PUT -T app_o2o_admin.2016-02-01.log "http://10.19.16.30:14000/webhdfs/v1/lijie/o2o_admin/app_o2o_admin.2016-02-01.log?op=CREATE&user.name=lijie&data=true"
 #
 
-config = {
-    "uploaded": 0,
-    "processed": 0,
-    "recursive_max": 5000
-}
-
 root = "/apps/logs/apps"
 base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
 auth_str = "user.name=lijie"
+max_recursive_file = 5000
+
+
+stats = {
+    "uploaded": 0,
+    "processed": 0,
+}
 
 
 def is_hdfs_exist(path_and_filename):
@@ -73,13 +74,17 @@ def hdfs_upload(path_and_filename):
 
 
 def recursive(dir):
-    files = os.listdir(dir)
+    try:
+        files = os.listdir(dir)
+    except OSError, msg:
+        print msg
+        sys.exit(1)
     files.sort()
     for f in files:
         # 忽略隐藏文件
         if f[0] == ".":
             continue
-        if config["processed"] >= config["recursive_max"]:
+        if stats["processed"] >= max_recursive_file:
             sys.exit(1)
         path = dir + os.sep + f
         if os.path.isdir(path):
@@ -88,22 +93,22 @@ def recursive(dir):
             recursive(path)
         elif os.path.isfile(path):
             if is_hdfs_exist(get_hdfs_path(path)):
-                config["uploaded"] = config["uploaded"] + 1
+                stats["uploaded"] = stats["uploaded"] + 1
                 print "[f][uploaded]", path
                 continue
             else:
                 print "[f][uploading]", path
             hdfs_upload(path)
-            config["processed"] = config["processed"] + 1
+            stats["processed"] = stats["processed"] + 1
         else:
             print "[?]", path
             sys.exit(1)
-        print "max:[%s], index[%s]" % (config["recursive_max"], config["processed"])
+        print "max_recursive_file:[%s], processed:[%s]" % (max_recursive_file, stats["processed"])
 
 
 def main():
     recursive(root)
-    print config
+    print stats
 
 if __name__ == '__main__':
     main()
