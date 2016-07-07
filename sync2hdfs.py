@@ -6,19 +6,16 @@ import sys
 import signal
 import requests
 
-#
-# curl -i -X PUT "http://10.19.16.30:14000/webhdfs/v1/lijie/o2o_admin?op=MKDIRS&user.name=lijie"
-#
-# curl -i  "http://10.19.16.30:14000/webhdfs/v1/lijie?op=LISTSTATUS&user.name=lijie"
-#
-# curl -i --header "Content-Type:application/octet-stream"  -X PUT -T app_o2o_admin.2016-02-01.log "http://10.19.16.30:14000/webhdfs/v1/lijie/o2o_admin/app_o2o_admin.2016-02-01.log?op=CREATE&user.name=lijie&data=true"
-#
+# Constant
+HttpStatusOk = 200
+HttpStatusCreated = 201
 
+# Config
 base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
 auth_str = "user.name=lijie"
 max_recursive_file = 1000
 
-
+# Statistics
 stats = {
     "uploaded": 0,
     "processed": 0,
@@ -32,7 +29,7 @@ def is_hdfs_exist(path_and_filename):
     url = base_url + os.sep + path_and_filename + "?op=GETFILESTATUS&" + auth_str
     # print ("is_hdfs_exist url:", url)
     response = requests.get(url)
-    if int(response.status_code) == 200:
+    if int(response.status_code) == HttpStatusOk:
         return True
     else:
         return False
@@ -48,7 +45,7 @@ def hdfs_mkdirs(dir):
     url = base_url + os.sep + dir + "?op=MKDIRS&" + auth_str
     # print ("mkdir url:", url)
     response = requests.put(url)
-    if int(response.status_code) == 200:
+    if int(response.status_code) == HttpStatusOk:
         print ("%s mkdir ok" % (dir))
     else:
         print ("%s mkdir failed" % (dir))
@@ -66,7 +63,7 @@ def hdfs_upload(root, path_and_filename):
     headers = {"Content-Type": "application/octet-stream"}
     response = requests.put(url, files=files, headers=headers)
     # print ("upload url:", url)
-    if int(response.status_code) == 201:
+    if int(response.status_code) == HttpStatusCreated:
         print ("%s upload ok" % (path_and_filename))
         return True
     else:
