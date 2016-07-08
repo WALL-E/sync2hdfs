@@ -85,7 +85,7 @@ def recursive(root, dir):
             sys.exit(1)
         path = dir + os.sep + f
         if os.path.isdir(path):
-            print ("[d] %s" %(path))
+            print("[d] %s" % (path))
             dst = get_hdfs_path(root, path)
             if not is_hdfs_exist(dst):
                 hdfs_mkdirs(dst)
@@ -94,10 +94,10 @@ def recursive(root, dir):
             stats["scan"] = stats["scan"] + 1
             if not force_upload and is_hdfs_exist(get_hdfs_path(root, path)):
                 stats["existed"] = stats["existed"] + 1
-                print ("[f][existed] %s" %(path))
+                print("[f][existed] %s" % (path))
                 continue
             else:
-                print ("[f][uploading] %s" %(path))
+                print("[f][uploading] %s" % (path))
             hdfs_upload(root, path)
         else:
             print ("[?][unknow]", path)
