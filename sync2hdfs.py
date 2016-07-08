@@ -36,7 +36,7 @@ def is_hdfs_exist(filename):
 
 def get_hdfs_path(root, src):
     dst = src.replace(root, "")
-    if dst[0] == "/":
+    if dst[0] == os.sep:
         dst = dst[1:]
     return dst
 
@@ -100,7 +100,7 @@ def recursive(root, dir):
                 print("[f][uploading] %s" % (path))
             hdfs_upload(root, path)
         else:
-            print ("[?][unknow]", path)
+            print ("[?][unknow] %s" % (path))
             sys.exit(1)
 
 
