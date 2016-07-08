@@ -86,7 +86,9 @@ def recursive(root, dir):
         path = dir + os.sep + f
         if os.path.isdir(path):
             print ("[d] %s" %(path))
-            hdfs_mkdirs(get_hdfs_path(root, path))
+            dst = get_hdfs_path(root, path)
+            if not is_hdfs_exist(dst):
+                hdfs_mkdirs(dst)
             recursive(root, path)
         elif os.path.isfile(path):
             stats["scan"] = stats["scan"] + 1
