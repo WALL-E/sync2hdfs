@@ -90,7 +90,7 @@ def recursive(root, dir):
             recursive(root, path)
         elif os.path.isfile(path):
             stats["scan"] = stats["scan"] + 1
-            if force_upload or is_hdfs_exist(get_hdfs_path(root, path)):
+            if not force_upload and is_hdfs_exist(get_hdfs_path(root, path)):
                 stats["existed"] = stats["existed"] + 1
                 print ("[f][existed] %s" %(path))
                 continue
