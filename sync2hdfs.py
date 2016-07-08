@@ -6,14 +6,14 @@ import sys
 import signal
 import requests
 
+ROOT = os.path.dirname(__file__)
+sys.path.append(ROOT)
+
+from config import *
+
 # Constant
 HttpStatusOk = 200
 HttpStatusCreated = 201
-
-# Config
-base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
-auth_str = "user.name=lijie"
-max_recursive_file = 1000
 
 # Statistics
 stats = {
@@ -52,11 +52,11 @@ def hdfs_mkdirs(dir):
 
 
 def hdfs_upload(root, filename):
-    files = {'file': open(filename, 'rb')}
+    data = open(filename, "rb").read()
     dst = get_hdfs_path(root, filename)
     url = base_url + os.sep + dst + "?op=CREATE&" + auth_str + "&data=true"
     headers = {"Content-Type": "application/octet-stream"}
-    response = requests.put(url, files=files, headers=headers)
+    response = requests.put(url, data=data, headers=headers)
     # print ("upload url:", url)
     if int(response.status_code) == HttpStatusCreated:
         # print ("%s upload ok" % (filename))
@@ -90,7 +90,7 @@ def recursive(root, dir):
             recursive(root, path)
         elif os.path.isfile(path):
             stats["scan"] = stats["scan"] + 1
-            if is_hdfs_exist(get_hdfs_path(root, path)):
+            if force_upload or is_hdfs_exist(get_hdfs_path(root, path)):
                 stats["existed"] = stats["existed"] + 1
                 print ("[f][existed] %s" %(path))
                 continue
