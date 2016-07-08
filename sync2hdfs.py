@@ -122,14 +122,14 @@ def main():
         sys.exit(1)
     src = sys.argv[1]
     recursive(src, src)
-    print ("#")
-    print ("# Config:")
-    print ("#")
-    print ("max_recursive_file:[%s]" % (max_recursive_file))
-    print ("#")
-    print ("# Statistics:")
-    print ("#")
-    print (stats)
+    print("#")
+    print("# Config:")
+    print("#")
+    print("max_recursive_file:[%s]" % (max_recursive_file))
+    print("#")
+    print("# Statistics:")
+    print("#")
+    print(stats)
 
 if __name__ == '__main__':
     main()
