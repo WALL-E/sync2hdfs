@@ -17,17 +17,16 @@ max_recursive_file = 1000
 
 # Statistics
 stats = {
-    "uploaded": 0,
-    "processed": 0,
+    "scan": 0,
+    "upload_ok": 0,
+    "upload_fail": 0,
+    "existed": 0,
 }
 is_exited = False
 
 
-def is_hdfs_exist(path_and_filename):
-    if path_and_filename[0] == "/":
-        path_and_filename = path_and_filename[1:]
-    url = base_url + os.sep + path_and_filename + "?op=GETFILESTATUS&" + auth_str
-    # print ("is_hdfs_exist url:", url)
+def is_hdfs_exist(filename):
+    url = base_url + os.sep + filename + "?op=GETFILESTATUS&" + auth_str
     response = requests.get(url)
     if int(response.status_code) == HttpStatusOk:
         return True
@@ -35,13 +34,14 @@ def is_hdfs_exist(path_and_filename):
         return False
 
 
-def get_hdfs_path(root, path_and_filename):
-    return path_and_filename.replace(root, "")
+def get_hdfs_path(root, src):
+    dst = src.replace(root, "")
+    if dst[0] == "/":
+        dst = dst[1:]
+    return dst
 
 
 def hdfs_mkdirs(dir):
-    if dir[0] == "/":
-        dir = dir[1:]
     url = base_url + os.sep + dir + "?op=MKDIRS&" + auth_str
     # print ("mkdir url:", url)
     response = requests.put(url)
@@ -51,23 +51,20 @@ def hdfs_mkdirs(dir):
         print ("%s mkdir failed" % (dir))
 
 
-def hdfs_upload(root, path_and_filename):
-    files = {'file': open(path_and_filename, 'rb')}
-    path_and_filename = get_hdfs_path(root, path_and_filename)
-    if path_and_filename[0] == "/":
-        path_and_filename = path_and_filename[1:]
-    if is_hdfs_exist(path_and_filename):
-        print ("%s existed" % (path_and_filename))
-        return False
-    url = base_url + os.sep + path_and_filename + "?op=CREATE&" + auth_str + "&data=true"
+def hdfs_upload(root, filename):
+    files = {'file': open(filename, 'rb')}
+    dst = get_hdfs_path(root, filename)
+    url = base_url + os.sep + dst + "?op=CREATE&" + auth_str + "&data=true"
     headers = {"Content-Type": "application/octet-stream"}
     response = requests.put(url, files=files, headers=headers)
     # print ("upload url:", url)
     if int(response.status_code) == HttpStatusCreated:
-        print ("%s upload ok" % (path_and_filename))
+        # print ("%s upload ok" % (filename))
+        stats["upload_ok"] = stats["upload_ok"] + 1
         return True
     else:
-        print ("%s upload failed" % (path_and_filename))
+        # print ("%s upload failed" % (filename))
+        stats["upload_fail"] = stats["upload_fail"] + 1
         return False
 
 
@@ -84,7 +81,7 @@ def recursive(root, dir):
         # 忽略隐藏文件
         if f[0] == ".":
             continue
-        if stats["processed"] >= max_recursive_file:
+        if stats["scan"] >= max_recursive_file:
             sys.exit(1)
         path = dir + os.sep + f
         if os.path.isdir(path):
@@ -92,14 +89,14 @@ def recursive(root, dir):
             hdfs_mkdirs(get_hdfs_path(root, path))
             recursive(root, path)
         elif os.path.isfile(path):
+            stats["scan"] = stats["scan"] + 1
             if is_hdfs_exist(get_hdfs_path(root, path)):
-                stats["uploaded"] = stats["uploaded"] + 1
-                print ("[f][uploaded] %s" %(path))
+                stats["existed"] = stats["existed"] + 1
+                print ("[f][existed] %s" %(path))
                 continue
             else:
                 print ("[f][uploading] %s" %(path))
-            hdfs_upload(dir, path)
-            stats["processed"] = stats["processed"] + 1
+            hdfs_upload(root, path)
         else:
             print ("[?][unknow]", path)
             sys.exit(1)
