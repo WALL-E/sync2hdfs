@@ -1,15 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""sync folder to hdfs using http restful api.
+
+Usage:
+  sync2hdfs.py [-hvq] [--force-upload] PATH...
+  sync2hdfs.py --version
+
+Arguments:
+  PATH  destination path
+
+Options:
+  -h --help            show this help message and exit
+  --version            show version and exit
+  -v --verbose         print status messages
+  -q --quiet           report only file names
+
+"""
 
 import os
 import sys
 import signal
 import requests
+from docopt import docopt
 
 ROOT = os.path.dirname(__file__)
 sys.path.append(ROOT)
 
-from config import *
+base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
+auth_str = "user.name=lijie"
+max_recursive_file = 1000
+force_upload = False
 
 # Constant
 HttpStatusOk = 200
@@ -78,7 +98,7 @@ def recursive(root, dir):
     for f in files:
         if is_exited:
             return
-        # 忽略隐藏文件
+        # ignore
         if f[0] == ".":
             continue
         if stats["scan"] >= max_recursive_file:
@@ -116,12 +136,17 @@ def onsignal_term(signum, frame):
 
 
 def main():
+    arguments = docopt(__doc__, version='1.0.0rc1')
+    print arguments
     signal.signal(signal.SIGINT, onsignal_term)
     if len(sys.argv) < 2:
         usage()
         sys.exit(1)
-    src = sys.argv[1]
-    recursive(src, src)
+    if arguments["--force-upload"]:
+        global force_upload
+        force_upload = True
+    for src in arguments["PATH"]:
+        recursive(src, src)
     print("#")
     print("# Config:")
     print("#")
