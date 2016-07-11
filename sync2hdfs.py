@@ -3,13 +3,16 @@
 """sync folder to hdfs using http restful api.
 
 Usage:
-  sync2hdfs.py [-hvq] [--force-upload] PATH...
+  sync2hdfs.py [-hvq] [--force-upload] [--base-url=url] [--username=name] [--max-recursive=max] PATH...
   sync2hdfs.py --version
 
 Arguments:
   PATH  destination path
 
 Options:
+  --base-url=url       WebHDFS REST API Endpoint
+  --username=name      the authenticated user is the username specified in the user.name query parameter
+  --max-recursive=max  max files each run
   -h --help            show this help message and exit
   --version            show version and exit
   -v --verbose         print status messages
@@ -27,8 +30,8 @@ ROOT = os.path.dirname(__file__)
 sys.path.append(ROOT)
 
 base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
-auth_str = "user.name=lijie"
-max_recursive_file = 1000
+username = "lijie"
+max_recursive = 1000
 force_upload = False
 
 # Constant
@@ -46,7 +49,7 @@ is_exited = False
 
 
 def is_hdfs_exist(filename):
-    url = base_url + os.sep + filename + "?op=GETFILESTATUS&" + auth_str
+    url = base_url + os.sep + filename + "?op=GETFILESTATUS&" + "user.name=" + "username"
     response = requests.get(url)
     if int(response.status_code) == HttpStatusOk:
         return True
@@ -62,7 +65,7 @@ def get_hdfs_path(root, src):
 
 
 def hdfs_mkdirs(dir):
-    url = base_url + os.sep + dir + "?op=MKDIRS&" + auth_str
+    url = base_url + os.sep + dir + "?op=MKDIRS&" + "user.name=" + "username"
     # print ("mkdir url:", url)
     response = requests.put(url)
     if int(response.status_code) == HttpStatusOk:
@@ -74,7 +77,7 @@ def hdfs_mkdirs(dir):
 def hdfs_upload(root, filename):
     data = open(filename, "rb").read()
     dst = get_hdfs_path(root, filename)
-    url = base_url + os.sep + dst + "?op=CREATE&" + auth_str + "&data=true"
+    url = base_url + os.sep + dst + "?op=CREATE&" + "user.name=" + "username" + "&data=true"
     headers = {"Content-Type": "application/octet-stream"}
     response = requests.put(url, data=data, headers=headers)
     # print ("upload url:", url)
@@ -101,7 +104,7 @@ def recursive(root, dir):
         # ignore
         if f[0] == ".":
             continue
-        if stats["scan"] >= max_recursive_file:
+        if stats["scan"] >= max_recursive:
             sys.exit(1)
         path = dir + os.sep + f
         if os.path.isdir(path):
@@ -137,7 +140,6 @@ def onsignal_term(signum, frame):
 
 def main():
     arguments = docopt(__doc__, version='1.0.0rc1')
-    print arguments
     signal.signal(signal.SIGINT, onsignal_term)
     if len(sys.argv) < 2:
         usage()
@@ -145,12 +147,22 @@ def main():
     if arguments["--force-upload"]:
         global force_upload
         force_upload = True
+    if arguments["--base-url"]:
+        global base_url
+        base_url = arguments["--base-url"]
+    if arguments["--username"]:
+        global username
+        username = arguments["--username"]
+    if arguments["--max-recursive"]:
+        global max_recursive
+        max_recursive = arguments["--max-recursive"]
+
     for src in arguments["PATH"]:
         recursive(src, src)
     print("#")
     print("# Config:")
     print("#")
-    print("max_recursive_file:[%s]" % (max_recursive_file))
+    print("max_recursive:[%s]" % (max_recursive))
     print("#")
     print("# Statistics:")
     print("#")
