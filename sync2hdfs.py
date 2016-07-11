@@ -33,6 +33,7 @@ base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
 username = "lijie"
 max_recursive = 1000
 force_upload = False
+quiet = False
 
 # Constant
 HttpStatusOk = 200
@@ -108,7 +109,8 @@ def recursive(root, dir):
             sys.exit(1)
         path = dir + os.sep + f
         if os.path.isdir(path):
-            print("[d] %s" % (path))
+            if quiet:
+                print("[d] %s" % (path))
             dst = get_hdfs_path(root, path)
             if not is_hdfs_exist(dst):
                 hdfs_mkdirs(dst)
@@ -117,13 +119,16 @@ def recursive(root, dir):
             stats["scan"] = stats["scan"] + 1
             if not force_upload and is_hdfs_exist(get_hdfs_path(root, path)):
                 stats["existed"] = stats["existed"] + 1
-                print("[f][existed] %s" % (path))
+                if quiet:
+                    print("[f][existed] %s" % (path))
                 continue
             else:
-                print("[f][uploading] %s" % (path))
+                if quiet:
+                    print("[f][uploading] %s" % (path))
             hdfs_upload(root, path)
         else:
-            print ("[?][unknow] %s" % (path))
+            if quiet:
+                print ("[?][unknow] %s" % (path))
             sys.exit(1)
 
 
@@ -138,35 +143,42 @@ def onsignal_term(signum, frame):
     is_exited = True
 
 
-def main():
-    arguments = docopt(__doc__, version='1.0.0rc1')
-    signal.signal(signal.SIGINT, onsignal_term)
-    if len(sys.argv) < 2:
-        usage()
-        sys.exit(1)
+def rebuild_options(arguments):
+    global force_upload
+    global base_url
+    global username
+    global max_recursive
+    global quiet
     if arguments["--force-upload"]:
-        global force_upload
         force_upload = True
     if arguments["--base-url"]:
-        global base_url
         base_url = arguments["--base-url"]
     if arguments["--username"]:
-        global username
         username = arguments["--username"]
     if arguments["--max-recursive"]:
-        global max_recursive
         max_recursive = arguments["--max-recursive"]
+    if arguments["--quiet"]:
+        quiet = arguments["--quiet"]
+
+
+def main():
+    signal.signal(signal.SIGINT, onsignal_term)
+
+    arguments = docopt(__doc__, version='1.0.0rc1')
+    rebuild_options(arguments)
 
     for src in arguments["PATH"]:
         recursive(src, src)
-    print("#")
-    print("# Config:")
-    print("#")
-    print("max_recursive:[%s]" % (max_recursive))
-    print("#")
-    print("# Statistics:")
-    print("#")
-    print(stats)
+
+    if arguments["--verbose"]:
+        print("#")
+        print("# Config:")
+        print("#")
+        print("max_recursive:[%s]" % (max_recursive))
+        print("#")
+        print("# Statistics:")
+        print("#")
+        print(stats)
 
 if __name__ == '__main__':
     main()
