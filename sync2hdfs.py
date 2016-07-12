@@ -33,7 +33,7 @@ base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
 username = "lijie"
 max_recursive = 1000
 force_upload = False
-quiet = False
+verbose = False
 
 # Constant
 HttpStatusOk = 200
@@ -109,7 +109,7 @@ def recursive(root, dir):
             sys.exit(1)
         path = dir + os.sep + f
         if os.path.isdir(path):
-            if quiet:
+            if verbose:
                 print("[d] %s" % (path))
             dst = get_hdfs_path(root, path)
             if not is_hdfs_exist(dst):
@@ -119,15 +119,15 @@ def recursive(root, dir):
             stats["scan"] = stats["scan"] + 1
             if not force_upload and is_hdfs_exist(get_hdfs_path(root, path)):
                 stats["existed"] = stats["existed"] + 1
-                if quiet:
+                if verbose:
                     print("[f][existed] %s" % (path))
                 continue
             else:
-                if quiet:
+                if verbose:
                     print("[f][uploading] %s" % (path))
             hdfs_upload(root, path)
         else:
-            if quiet:
+            if verbose:
                 print ("[?][unknow] %s" % (path))
             sys.exit(1)
 
@@ -148,7 +148,7 @@ def rebuild_options(arguments):
     global base_url
     global username
     global max_recursive
-    global quiet
+    global verbose
     if arguments["--force-upload"]:
         force_upload = True
     if arguments["--base-url"]:
@@ -157,8 +157,8 @@ def rebuild_options(arguments):
         username = arguments["--username"]
     if arguments["--max-recursive"]:
         max_recursive = arguments["--max-recursive"]
-    if arguments["--quiet"]:
-        quiet = arguments["--quiet"]
+    if arguments["--verbose"]:
+        verbose = arguments["--verbose"]
 
 
 def main():
@@ -170,7 +170,7 @@ def main():
     for src in arguments["PATH"]:
         recursive(src, src)
 
-    if arguments["--verbose"]:
+    if not arguments["--quiet"]:
         print("#")
         print("# Config:")
         print("#")
