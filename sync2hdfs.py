@@ -50,7 +50,7 @@ is_exited = False
 
 
 def is_hdfs_exist(filename):
-    url = base_url + os.sep + filename + "?op=GETFILESTATUS&" + "user.name=" + "username"
+    url = base_url + os.sep + filename + "?op=GETFILESTATUS&" + "user.name=" + username
     response = requests.get(url)
     if int(response.status_code) == HttpStatusOk:
         return True
@@ -66,7 +66,7 @@ def get_hdfs_path(root, src):
 
 
 def hdfs_mkdirs(dir):
-    url = base_url + os.sep + dir + "?op=MKDIRS&" + "user.name=" + "username"
+    url = base_url + os.sep + dir + "?op=MKDIRS&" + "user.name=" + username
     # print ("mkdir url:", url)
     response = requests.put(url)
     if int(response.status_code) == HttpStatusOk:
@@ -78,7 +78,7 @@ def hdfs_mkdirs(dir):
 def hdfs_upload(root, filename):
     data = open(filename, "rb").read()
     dst = get_hdfs_path(root, filename)
-    url = base_url + os.sep + dst + "?op=CREATE&" + "user.name=" + "username" + "&data=true"
+    url = base_url + os.sep + dst + "?op=CREATE&" + "user.name=" + username + "&data=true"
     headers = {"Content-Type": "application/octet-stream"}
     response = requests.put(url, data=data, headers=headers)
     # print ("upload url:", url)
