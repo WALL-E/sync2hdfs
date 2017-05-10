@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
 """sync folder to hdfs using http restful api.
 
@@ -31,7 +31,7 @@ sys.path.append(ROOT)
 
 base_url = "http://10.19.16.30:14000/webhdfs/v1/lijie"
 username = "lijie"
-max_recursive = 1000
+max_recursive = 100
 force_upload = False
 verbose = False
 
@@ -93,11 +93,13 @@ def hdfs_upload(root, filename):
 
 
 def recursive(root, dir):
+    global is_exited
     try:
         files = os.listdir(dir)
     except OSError, msg:
         print (msg)
-        sys.exit(1)
+        is_exited = True
+        return
     files.sort()
     for f in files:
         if is_exited:
@@ -106,7 +108,8 @@ def recursive(root, dir):
         if f[0] == ".":
             continue
         if stats["scan"] >= max_recursive:
-            sys.exit(1)
+            is_exited = True
+            return
         path = dir + os.sep + f
         if os.path.isdir(path):
             if verbose:
@@ -129,7 +132,8 @@ def recursive(root, dir):
         else:
             if verbose:
                 print ("[?][unknow] %s" % (path))
-            sys.exit(1)
+            is_exited = True
+            return
 
 
 def usage():
@@ -169,6 +173,8 @@ def main():
 
     for src in arguments["PATH"]:
         recursive(src, src)
+        if is_exited:
+            break
 
     if not arguments["--quiet"]:
         print("#")
